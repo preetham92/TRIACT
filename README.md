@@ -123,3 +123,114 @@ Password: Password123
 Email: rahul@example.com
 
 Password: Password123
+
+
+
+# 🛍️ TRIACT RAG (Gemini-powered AI Assistant)
+
+This module implements a Retrieval-Augmented Generation (RAG) pipeline for TRIACT.
+It allows owners and employees to ask natural language questions about shop data (sales, stock, invoices) and get AI-powered answers using Google Gemini AI.
+
+📂 Project Structure
+```
+triact-rag/
+│── server.py          # FastAPI backend (RAG query endpoint)
+│── ingestion.py       # Script to load, chunk, and embed shop data
+│── requirements.txt   # Python dependencies
+```
+⚙️ Setup Instructions
+1. Create a Virtual Environment
+## Windows
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+## Mac/Linux
+```
+python3 -m venv venv
+source venv/bin/activate
+```
+## 2. Install Dependencies
+```
+pip install -r requirements.txt
+```
+
+## 3. Set Up Environment Variables
+
+### Create .env inside triact-rag/:
+```
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster0.xxxxx.mongodb.net
+MONGO_DB=triact
+GEMINI_API_KEY=your_google_gemini_api_key
+GEMINI_EMBEDDING_MODEL=text-embedding-004   # or your chosen Gemini embedding model
+GEMINI_GENERATIVE_MODEL=gemini-2.5-flash      # for generation in server.py
+JWT_SECRET=your_jwt_secret
+```
+
+## 5.📥 Data Ingestion
+
+Run:
+```
+python ingestion.py
+```
+
+This will:
+
+Load shop documents (invoices, stock, sales, etc.)
+
+Chunk them into smaller pieces
+
+Generate embeddings using Gemini
+
+Save them into MongoDB (embeddings collection)
+
+## 6.🚀 Run the RAG Server
+```
+uvicorn server:app --port 8011 --reload
+```
+
+- Server → http://localhost:8011
+- Server/docs → http://localhost:8011/docs
+
+🔗 API Endpoints
+Query RAG
+```
+POST /api/rag/query
+
+Request body:
+
+{
+  "query": "What is the recent sold stock?"
+}
+```
+
+Headers:
+```
+Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
+```
+
+Response:
+```
+{
+  "answer": "The most recently sold stock was 20 units of Product X on Sept 30."
+}
+```
+🖥️ Frontend Integration
+
+In your React frontend:
+```
+async function askRag(query, jwtToken) {
+  const resp = await fetch("http://localhost:8000/api/rag/query", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${jwtToken}`
+    },
+    body: JSON.stringify({ query })
+  });
+  return await resp.json();
+}
+```
+
+Use this inside your dashboard Chat component.
