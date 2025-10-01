@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/useAuth.js";
 import shopService from "../services/shopService";
 import RevenueChart from "../components/RevenueChart.jsx";
 import CategoryPieChart from "../components/CategoryPieChart.jsx";
 import CreateShopForm from "../components/CreateShopForm.jsx";
+import Chat from "../components/Chat.jsx";
 
+// Icons
 const DollarSignIcon = () => (
   <path d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 );
@@ -18,8 +20,10 @@ const CubeIcon = () => (
   <path d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
 );
 
-const OwnerDashboard = () => {
-  const { user } = useAuth();
+export default function OwnerDashboard() {
+  const { user, token } = useAuth();
+  const jwtToken = token || localStorage.getItem("token"); // JWT for RAG
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -94,6 +98,7 @@ const OwnerDashboard = () => {
     <div className="space-y-8 p-4 sm:p-6 lg:p-8">
       <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
 
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpis.map((kpi) => (
           <div
@@ -120,7 +125,9 @@ const OwnerDashboard = () => {
         ))}
       </div>
 
+      {/* Charts + Chat Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Revenue Chart */}
         <div className="lg:col-span-3 bg-white p-4 rounded-lg shadow-md">
           {data.revenueTrend && data.revenueTrend.length > 0 ? (
             <RevenueChart data={data.revenueTrend} />
@@ -130,11 +137,25 @@ const OwnerDashboard = () => {
             </div>
           )}
         </div>
-        <div className="lg:col-span-2 bg-white p-4 rounded-lg shadow-md">
-          <CategoryPieChart data={data.salesByCategory} />
+
+        {/* Sidebar: Category Pie + Chat */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          {/* Category Pie Chart */}
+          <div className="bg-white p-4 rounded-lg shadow-md flex-1">
+            <CategoryPieChart data={data.salesByCategory} />
+          </div>
+
+          {/* RAG Chat */}
+          <div className="rag-chat-widget bg-white p-4 rounded-lg shadow-md flex-1 flex flex-col">
+            <h2 className="text-lg font-semibold mb-2">Shop AI Assistant</h2>
+            <div className="flex-1 overflow-y-auto">
+              <Chat jwtToken={jwtToken} />
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Low Stock Alerts */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-gray-700">
           Low Stock Alerts
@@ -159,5 +180,4 @@ const OwnerDashboard = () => {
       </div>
     </div>
   );
-};
-export default OwnerDashboard;
+}
